@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <fstream>
 #include <cassert>
-//#include <utility>
 
 
 template <typename T>
@@ -156,16 +155,19 @@ int main()
     OCL_SAFE_CALL(errcode_ret);
 
     // TODO 8 Теперь скомпилируйте программу и напечатайте в консоль лог компиляции
-    OCL_SAFE_CALL(clBuildProgram(prog, 1, &device_id, "", nullptr, nullptr));
+    auto ret = clBuildProgram(prog, 1, &device_id, "", nullptr, nullptr);
 
     // А так же напечатайте лог компиляции (он будет очень полезен, если в кернеле есть синтаксические ошибки - т.е. когда clBuildProgram вернет CL_BUILD_PROGRAM_FAILURE)
     // см. clGetProgramBuildInfo
     size_t log_size = 0;
+    OCL_SAFE_CALL(clGetProgramBuildInfo(prog, device_id, CL_PROGRAM_BUILD_LOG, 0, nullptr, &log_size));
     std::vector<char> log(log_size, 0);
+    OCL_SAFE_CALL(clGetProgramBuildInfo(prog, device_id, CL_PROGRAM_BUILD_LOG, log_size, log.data(), nullptr));
     if (log_size > 1) {
         std::cout << "Log:" << std::endl;
         std::cout << log.data() << std::endl;
     }
+    OCL_SAFE_CALL(ret);
 
     // TODO 9 Создайте OpenCL-kernel в созданной подпрограмме (в одной подпрограмме может быть несколько кернелов, но в данном случае кернел один)
     // см. подходящую функцию в Runtime APIs -> Program Objects -> Kernel Objects
