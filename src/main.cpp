@@ -51,7 +51,7 @@ cl_device_id find_gpu_or_cpu() {
         for (const auto &device : devices) {
             cl_device_type device_type{};
             size_t info_size = sizeof(device_type);
-            clGetDeviceInfo(device, CL_DEVICE_TYPE, info_size, &device_type, nullptr);
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_TYPE, info_size, &device_type, nullptr));
 
             if (device_type == CL_DEVICE_TYPE_GPU) {
                 return device;
@@ -68,7 +68,8 @@ template<typename T, cl_int (*Release)(T)>
 struct Resource {
     Resource(const T &resource) : data(resource) {}
     ~Resource() {
-        Release(data);
+        if (Release(data) != CL_SUCCESS)
+            std::cout << "Failed to release resource";
     }
     operator T() const { 
         return data; 
